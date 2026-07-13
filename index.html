@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doces Ronaldo</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fdf8f2; color: #2d1f0e; }
+
+  header { background: #7c3d0f; color: white; text-align: center; padding: 20px 16px 16px; }
+  header h1 { font-size: 26px; font-weight: 700; letter-spacing: 0.5px; }
+  header p { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+
+  .tabs { display: flex; background: #5c2d09; overflow-x: auto; }
+  .tab { flex: 1; min-width: 110px; padding: 12px 8px; text-align: center; color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; }
+  .tab.active { color: white; border-bottom-color: #f59e0b; }
+
+  .section { display: none; padding: 16px; max-width: 600px; margin: 0 auto; }
+  .section.active { display: block; }
+
+  .section-title { font-size: 18px; font-weight: 700; color: #7c3d0f; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #f59e0b; }
+
+  .product { background: white; border-radius: 12px; padding: 14px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .product-info { flex: 1; }
+  .product-name { font-weight: 700; font-size: 15px; color: #2d1f0e; }
+  .product-desc { font-size: 12px; color: #888; margin-top: 2px; }
+  .product-price { font-size: 15px; font-weight: 700; color: #7c3d0f; margin-top: 6px; }
+
+  .qty-control { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .qty-btn { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #7c3d0f; background: white; color: #7c3d0f; font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; transition: all 0.15s; }
+  .qty-btn:active { background: #7c3d0f; color: white; }
+  .qty-num { font-size: 16px; font-weight: 700; min-width: 20px; text-align: center; color: #2d1f0e; }
+
+  .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; padding: 12px 16px; background: white; box-shadow: 0 -2px 12px rgba(0,0,0,0.12); display: none; }
+  .cart-bar.visible { display: block; }
+  .cart-btn { display: flex; justify-content: space-between; align-items: center; background: #25d366; color: white; border: none; border-radius: 12px; padding: 14px 20px; width: 100%; font-size: 16px; font-weight: 700; cursor: pointer; }
+  .cart-btn:active { background: #1da851; }
+  .cart-btn span { font-size: 13px; opacity: 0.9; }
+
+  .empty-cart { text-align: center; color: #aaa; padding: 40px 20px; font-size: 14px; }
+
+  pb { padding-bottom: 80px; display: block; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🍬 Doces Ronaldo</h1>
+  <p>Produtos artesanais e de qualidade</p>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('doces', this)">Doces</div>
+  <div class="tab" onclick="switchTab('amendoins', this)">Amendoins/Queijos</div>
+  <div class="tab" onclick="switchTab('bolos', this)">Bolos/Broas</div>
+</div>
+
+<div id="doces" class="section active">
+  <pb></pb>
+  <p class="section-title">Doces</p>
+  <div id="list-doces"></div>
+</div>
+
+<div id="amendoins" class="section">
+  <pb></pb>
+  <p class="section-title">Amendoins / Queijos</p>
+  <div id="list-amendoins"></div>
+</div>
+
+<div id="bolos" class="section">
+  <pb></pb>
+  <p class="section-title">Bolos / Broas</p>
+  <div id="list-bolos"></div>
+</div>
+
+<div class="cart-bar" id="cart-bar">
+  <button class="cart-btn" onclick="sendWhatsApp()">
+    <span id="cart-count">0 itens</span>
+    <span>Pedir pelo WhatsApp →</span>
+    <span id="cart-total">R$ 0,00</span>
+  </button>
+</div>
+
+<script>
+const WHATSAPP = '5511984169999';
+
+const products = {
+  doces: [
+    { id: 'd1',  name: 'Paçocão no Espeto',         desc: 'Espeto c/50 unidades de 90g cada',         price: 90 },
+    { id: 'd2',  name: 'Paçoca',                     desc: 'Pote c/20 unidades de 73g cada',           price: 34 },
+    { id: 'd3',  name: 'Pé de Moça',                 desc: 'Pote c/20 unidades de 51g cada',           price: 26 },
+    { id: 'd4',  name: 'Pé de Moleque',              desc: 'Pote c/20 unidades de 52g cada',           price: 25 },
+    { id: 'd5',  name: 'Paçoca Rolha',               desc: 'Pote c/20 unidades de 55g cada',           price: 25 },
+    { id: 'd6',  name: 'Cocada',                     desc: 'Pote c/20 unidades de 50g cada',           price: 40 },
+    { id: 'd7',  name: 'Cocada Comprida',            desc: 'Pote c/20 unidades de 50g cada',           price: 36 },
+    { id: 'd8',  name: 'Quebra-Queixo',              desc: 'Pote c/20 unidades de 51g cada',           price: 32 },
+    { id: 'd9',  name: 'AB - Abóbora/Batata',        desc: 'Pote c/16 unidades de 65g cada',           price: 22 },
+    { id: 'd10', name: 'Doce de Leite Misto',        desc: 'Pote c/20 unidades de 55g cada',           price: 46 },
+    { id: 'd11', name: 'Doce de Leite Puro',         desc: 'Pote c/20 unidades de 55g cada',           price: 46 },
+    { id: 'd12', name: 'Doce de Leite com Coco',     desc: 'Pote c/20 unidades de 55g cada',           price: 46 },
+    { id: 'd13', name: 'Amendoleite',                desc: 'Pote c/20 unidades de 65g cada',           price: 32 },
+    { id: 'd14', name: 'Pingo de Leite',             desc: 'Display c/40 unidades de 20g cada',        price: 50 },
+    { id: 'd15', name: 'Bananinha Famoso',           desc: 'Display c/24 unidades de 30g cada',        price: 42 },
+    { id: 'd16', name: 'Bananinha Famoso Diet',      desc: 'Display c/24 unidades de 30g cada',        price: 52 },
+    { id: 'd17', name: 'Bananinha Palito',           desc: 'Pote c/30 unidades de 35g cada',           price: 38 },
+    { id: 'd18', name: 'Bala Quebra-Queixo',         desc: 'Pote de 600g c/100 unidades',              price: 20 },
+    { id: 'd19', name: 'Paçoquita',                  desc: 'Display c/50 unidades de 20g cada',        price: 37 },
+    { id: 'd20', name: 'Pingo Bel Ouro de Minas',   desc: 'Pote c/21 unidades de 50g cada',           price: 46 },
+    { id: 'd21', name: 'Brigadeiro Ouro de Minas',  desc: 'Pote c/21 unidades de 50g cada',           price: 46 },
+    { id: 'd22', name: 'Beijo Ouro de Minas',       desc: 'Pote c/21 unidades de 50g cada',           price: 46 },
+    { id: 'd23', name: 'Palha Italiana Ouro de Minas', desc: 'Pote c/21 unidades de 50g cada',        price: 46 },
+    { id: 'd24', name: 'Beijo de Moça Ouro de Minas',  desc: 'Pote c/21 unidades de 50g cada',        price: 46 },
+  ],
+  amendoins: [
+    { id: 'a1', name: 'Amendoim Salgado c/Alho Sem Pele',    desc: 'Cartela c/10 pacotinhos de 90g cada',        price: 30 },
+    { id: 'a2', name: 'Amendoim Salgado c/Alho Com Pele',    desc: 'Cartela c/10 pacotinhos de 90g cada',        price: 30 },
+    { id: 'a3', name: 'Amendoim Salgado Sem Pele no Espeto', desc: 'Espeto c/40 pacotinhos de 50g cada',         price: 70 },
+    { id: 'a4', name: 'Amendoim Salgado Com Pele no Espeto', desc: 'Espeto c/40 pacotinhos de 50g cada',         price: 70 },
+    { id: 'a5', name: 'Queijo Palito Temperado Mussarela',   desc: 'Espeto c/40 palitos embalados individualmente', price: 90 },
+    { id: 'a6', name: 'Queijo Nó Mussarela',                 desc: 'Balde c/ 1,02 Kg',                           price: 98 },
+    { id: 'a7', name: 'Queijo Trança Mussarela',             desc: 'Peso Bruto 2,5 Kg',                          price: 98 },
+    { id: 'a8', name: 'Queijo Parmesão',                     desc: 'Peso Bruto 1,9 Kg',                          price: 98 },
+  ],
+  bolos: [
+    { id: 'b1',  name: 'Broas de Milho',          desc: 'Bandeja c/12 unidades', price: 35 },
+    { id: 'b2',  name: 'Bolo Aipim',              desc: 'Bolo c/12 fatias',      price: 35 },
+    { id: 'b3',  name: 'Bolo Milho Verde',        desc: 'Bolo c/12 fatias',      price: 35 },
+    { id: 'b4',  name: 'Bolo Laranja',            desc: 'Bolo c/12 fatias',      price: 35 },
+    { id: 'b5',  name: 'Bolo Cenoura c/Chocolate', desc: 'Bolo c/12 fatias',    price: 35 },
+    { id: 'b6',  name: 'Bolo Frapê',              desc: 'Bolo c/12 fatias',      price: 35 },
+    { id: 'b7',  name: 'Bolo Chocolate',          desc: 'Bolo c/12 fatias',      price: 35 },
+    { id: 'b8',  name: 'Bolo Leite Condensado',   desc: 'Bolo c/12 fatias',      price: 35 },
+    { id: 'b9',  name: 'Bolo Coco',               desc: 'Bolo c/12 fatias',      price: 35 },
+    { id: 'b10', name: 'Bolo Abacaxi',            desc: 'Bolo c/12 fatias',      price: 35 },
+  ]
+};
+
+const cart = {};
+
+function fmt(n) {
+  return 'R$ ' + n.toFixed(2).replace('.', ',');
+}
+
+function renderList(category) {
+  const container = document.getElementById('list-' + category);
+  container.innerHTML = '';
+  products[category].forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'product';
+    div.innerHTML = `
+      <div class="product-info">
+        <div class="product-name">${p.name}</div>
+        <div class="product-desc">${p.desc}</div>
+        <div class="product-price">${fmt(p.price)}</div>
+      </div>
+      <div class="qty-control">
+        <button class="qty-btn" onclick="changeQty('${p.id}', -1)">−</button>
+        <span class="qty-num" id="qty-${p.id}">0</span>
+        <button class="qty-btn" onclick="changeQty('${p.id}', 1)">+</button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function findProduct(id) {
+  for (const cat of Object.values(products)) {
+    const p = cat.find(x => x.id === id);
+    if (p) return p;
+  }
+}
+
+function changeQty(id, delta) {
+  const current = cart[id] || 0;
+  const next = Math.max(0, current + delta);
+  if (next === 0) delete cart[id];
+  else cart[id] = next;
+  document.getElementById('qty-' + id).textContent = next;
+  updateCartBar();
+}
+
+function updateCartBar() {
+  const ids = Object.keys(cart);
+  const totalItems = ids.reduce((s, id) => s + cart[id], 0);
+  const totalPrice = ids.reduce((s, id) => s + cart[id] * findProduct(id).price, 0);
+  const bar = document.getElementById('cart-bar');
+  if (totalItems === 0) {
+    bar.classList.remove('visible');
+  } else {
+    bar.classList.add('visible');
+    document.getElementById('cart-count').textContent = totalItems + (totalItems === 1 ? ' item' : ' itens');
+    document.getElementById('cart-total').textContent = fmt(totalPrice);
+  }
+}
+
+function sendWhatsApp() {
+  const ids = Object.keys(cart);
+  if (ids.length === 0) return;
+  const totalPrice = ids.reduce((s, id) => s + cart[id] * findProduct(id).price, 0);
+  let msg = '🛍️ *Pedido - Doces Ronaldo*\n\n';
+  ids.forEach(id => {
+    const p = findProduct(id);
+    const subtotal = cart[id] * p.price;
+    msg += `• ${cart[id]}x ${p.name} — ${fmt(subtotal)}\n`;
+  });
+  msg += `\n*Total: ${fmt(totalPrice)}*`;
+  const url = 'https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent(msg);
+  window.open(url, '_blank');
+}
+
+function switchTab(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+}
+
+renderList('doces');
+renderList('amendoins');
+renderList('bolos');
+</script>
+</body>
+</html>
