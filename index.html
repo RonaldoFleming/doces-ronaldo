@@ -51,9 +51,9 @@
 </header>
 
 <div class="tabs">
-  <div class="tab active" id="tab-doces" onclick="scrollTo('doces')">Doces</div>
-  <div class="tab" id="tab-amendoins" onclick="scrollTo('amendoins')">Amendoins/Queijos</div>
-  <div class="tab" id="tab-bolos" onclick="scrollTo('bolos')">Bolos/Broas</div>
+  <div class="tab active" id="tab-doces" onclick="scrollToSection('doces')">Doces</div>
+  <div class="tab" id="tab-amendoins" onclick="scrollToSection('amendoins')">Amendoins/Queijos</div>
+  <div class="tab" id="tab-bolos" onclick="scrollToSection('bolos')">Bolos/Broas</div>
 </div>
 
 <div id="doces" class="section">
@@ -210,7 +210,7 @@ function sendWhatsApp() {
   window.open(url, '_blank');
 }
 
-function scrollTo(id) {
+function scrollToSection(id) {
   const el = document.getElementById(id);
   const offset = el.getBoundingClientRect().top + window.scrollY - 48;
   window.scrollTo({ top: offset, behavior: 'smooth' });
