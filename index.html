@@ -12,12 +12,11 @@
   header h1 { font-size: 26px; font-weight: 700; letter-spacing: 0.5px; }
   header p { font-size: 13px; opacity: 0.85; margin-top: 4px; }
 
-  .tabs { display: flex; background: #5c2d09; overflow-x: auto; }
+  .tabs { display: flex; background: #5c2d09; overflow-x: auto; position: sticky; top: 0; z-index: 10; }
   .tab { flex: 1; min-width: 110px; padding: 12px 8px; text-align: center; color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; }
   .tab.active { color: white; border-bottom-color: #f59e0b; }
 
-  .section { display: none; padding: 16px; max-width: 600px; margin: 0 auto; }
-  .section.active { display: block; }
+  .section { display: block; padding: 16px; max-width: 600px; margin: 0 auto; }
 
   .section-title { font-size: 18px; font-weight: 700; color: #7c3d0f; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #f59e0b; }
 
@@ -40,7 +39,8 @@
 
   .empty-cart { text-align: center; color: #aaa; padding: 40px 20px; font-size: 14px; }
 
-  pb { padding-bottom: 80px; display: block; }
+  pb { padding-bottom: 8px; display: block; }
+  .page-bottom { height: 80px; }
 </style>
 </head>
 <body>
@@ -51,12 +51,12 @@
 </header>
 
 <div class="tabs">
-  <div class="tab active" onclick="switchTab('doces', this)">Doces</div>
-  <div class="tab" onclick="switchTab('amendoins', this)">Amendoins/Queijos</div>
-  <div class="tab" onclick="switchTab('bolos', this)">Bolos/Broas</div>
+  <div class="tab active" id="tab-doces" onclick="scrollTo('doces')">Doces</div>
+  <div class="tab" id="tab-amendoins" onclick="scrollTo('amendoins')">Amendoins/Queijos</div>
+  <div class="tab" id="tab-bolos" onclick="scrollTo('bolos')">Bolos/Broas</div>
 </div>
 
-<div id="doces" class="section active">
+<div id="doces" class="section">
   <pb></pb>
   <p class="section-title">Doces</p>
   <div id="list-doces"></div>
@@ -73,6 +73,7 @@
   <p class="section-title">Bolos / Broas</p>
   <div id="list-bolos"></div>
 </div>
+<div class="page-bottom"></div>
 
 <div class="cart-bar" id="cart-bar">
   <button class="cart-btn" onclick="sendWhatsApp()">
@@ -209,16 +210,27 @@ function sendWhatsApp() {
   window.open(url, '_blank');
 }
 
-function switchTab(id, el) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  el.classList.add('active');
+function scrollTo(id) {
+  const el = document.getElementById(id);
+  const offset = el.getBoundingClientRect().top + window.scrollY - 48;
+  window.scrollTo({ top: offset, behavior: 'smooth' });
 }
+
+const sections = ['doces', 'amendoins', 'bolos'];
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      sections.forEach(s => document.getElementById('tab-' + s).classList.remove('active'));
+      document.getElementById('tab-' + entry.target.id).classList.add('active');
+    }
+  });
+}, { rootMargin: '-48px 0px -60% 0px', threshold: 0 });
 
 renderList('doces');
 renderList('amendoins');
 renderList('bolos');
+
+sections.forEach(s => observer.observe(document.getElementById(s)));
 </script>
 </body>
 </html>
